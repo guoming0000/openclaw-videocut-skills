@@ -13,23 +13,30 @@ if [ -z "$AUDIO_URL" ]; then
   exit 1
 fi
 
-# 获取 API Key
+# 获取 API Key（优先环境变量，兼容 .env 文件）
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ENV_FILE="$(dirname "$(dirname "$SCRIPT_DIR")")/.env"
 
-if [ ! -f "$ENV_FILE" ]; then
-  echo "❌ 找不到 $ENV_FILE"
-  echo "请创建: cp .env.example .env 并填入 VOLCENGINE_API_KEY"
-  exit 1
+if [ -n "$VOLCENGINE_API_KEY" ]; then
+  API_KEY="$VOLCENGINE_API_KEY"
+else
+  ENV_FILE="$(dirname "$(dirname "$SCRIPT_DIR")")/.env"
+  if [ -f "$ENV_FILE" ]; then
+    API_KEY=$(grep VOLCENGINE_API_KEY "$ENV_FILE" | cut -d'=' -f2)
+  fi
 fi
 
-API_KEY=$(grep VOLCENGINE_API_KEY "$ENV_FILE" | cut -d'=' -f2)
+if [ -z "$API_KEY" ]; then
+  echo "❌ 未找到 VOLCENGINE_API_KEY"
+  echo "请设置环境变量 VOLCENGINE_API_KEY 或创建 .env 文件"
+  exit 1
+fi
 
 echo "🎤 提交火山引擎转录任务..."
 echo "音频 URL: $AUDIO_URL"
 
-# 读取热词词典
-DICT_FILE="$(dirname "$SCRIPT_DIR")/字幕/词典.txt"
+# 读取热词词典（skill 根目录/字幕/词典.txt）
+SKILL_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+DICT_FILE="$SKILL_ROOT/字幕/词典.txt"
 HOT_WORDS=""
 if [ -f "$DICT_FILE" ]; then
   # 把词典转换成 JSON 数组格式

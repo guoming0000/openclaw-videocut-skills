@@ -1,16 +1,8 @@
----
-name: videocut:自进化
-description: 自进化 skills。记录用户反馈，更新方法论和规则。触发词：更新规则、记录反馈、改进skill
----
-
 <!--
+子流程：自进化
 input: 用户反馈、错误纠正
-output: 更新后的文档（CLAUDE.md 或 tips/*.md）
-pos: 元 skill，让 Agent 从错误中学习
-
-架构守护者：一旦我被修改，请同步更新：
-1. ../README.md 的 Skill 清单
-2. /CLAUDE.md 路由表
+output: 更新后的规则文件
+由根目录 SKILL.md 路由到此文件
 -->
 
 # 自更新
@@ -29,8 +21,8 @@ pos: 元 skill，让 Agent 从错误中学习
 
 | 内容类型 | 目标文件 | 示例 |
 |---------|---------|------|
-| 用户画像 | `CLAUDE.md` | 偏好、习惯 |
-| 方法论 + 反馈 | `*/tips/*.md` | 规则、教训 |
+| 口误识别规则 | `{baseDir}/剪口播/用户习惯/*.md` | 偏好、阈值 |
+| 字幕纠错规则 | `{baseDir}/字幕/guide.md` 的反馈记录 | 误识别规则 |
 
 ## 流程
 

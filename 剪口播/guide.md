@@ -1,16 +1,8 @@
----
-name: videocut:剪口播
-description: 口播视频转录和口误识别。生成审查稿和删除任务清单。触发词：剪口播、处理视频、识别口误
----
-
 <!--
+子流程：剪口播
 input: 视频文件 (*.mp4)
 output: subtitles_words.json、auto_selected.json、review.html
-pos: 转录+识别，到用户网页审核为止
-
-架构守护者：一旦我被修改，请同步更新：
-1. ../README.md 的 Skill 清单
-2. /CLAUDE.md 路由表
+由根目录 SKILL.md 路由到此文件
 -->
 
 # 剪口播 v2
@@ -97,7 +89,7 @@ curl -s -F "files[]=@audio.mp3" https://uguu.se/upload
 # 返回: {"success":true,"files":[{"url":"https://h.uguu.se/xxx.mp3"}]}
 
 # 3. 调用火山引擎 API
-SKILL_DIR="/Users/chengfeng/Desktop/AIos/剪辑Agent/.claude/skills/剪口播"
+SKILL_DIR="{baseDir}/剪口播"
 "$SKILL_DIR/scripts/volcengine_transcribe.sh" "https://h.uguu.se/xxx.mp3"
 # 输出: volcengine_result.json
 ```
@@ -105,7 +97,7 @@ SKILL_DIR="/Users/chengfeng/Desktop/AIos/剪辑Agent/.claude/skills/剪口播"
 ### 步骤 4: 生成字幕
 
 ```bash
-node "$SKILL_DIR/scripts/generate_subtitles.js" volcengine_result.json
+node "{baseDir}/剪口播/scripts/generate_subtitles.js" volcengine_result.json
 # 输出: subtitles_words.json
 
 cd ..
@@ -135,7 +127,7 @@ require('fs').writeFileSync('readable.txt', output.join('\\n'));
 
 #### 5.2 读取用户习惯
 
-先读 `用户习惯/` 目录下所有规则文件。
+先读 `{baseDir}/剪口播/用户习惯/` 目录下所有规则文件。
 
 #### 5.3 生成句子列表（关键步骤）
 
@@ -235,11 +227,11 @@ readable.txt 格式: idx|内容|时间
 cd ../3_审核
 
 # 6. 生成审核网页
-node "$SKILL_DIR/scripts/generate_review.js" ../1_转录/subtitles_words.json ../2_分析/auto_selected.json ../1_转录/audio.mp3
+node "{baseDir}/剪口播/scripts/generate_review.js" ../1_转录/subtitles_words.json ../2_分析/auto_selected.json ../1_转录/audio.mp3
 # 输出: review.html
 
 # 7. 启动审核服务器
-node "$SKILL_DIR/scripts/review_server.js" 8899 "$VIDEO_PATH"
+node "{baseDir}/剪口播/scripts/review_server.js" 8899 "$VIDEO_PATH"
 # 打开 http://localhost:8899
 ```
 
@@ -273,8 +265,4 @@ node "$SKILL_DIR/scripts/review_server.js" 8899 "$VIDEO_PATH"
 
 ### 火山引擎 API Key
 
-```bash
-cd /Users/chengfeng/Desktop/AIos/剪辑Agent/.claude/skills
-cp .env.example .env
-# 编辑 .env 填入 VOLCENGINE_API_KEY=xxx
-```
+通过环境变量 `VOLCENGINE_API_KEY` 注入（OpenClaw 配置或系统环境变量）。

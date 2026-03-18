@@ -1,12 +1,8 @@
----
-name: videocut:字幕
-description: 字幕生成与烧录。火山引擎转录→词典纠错→审核→烧录。触发词：加字幕、生成字幕、字幕
----
-
 <!--
+子流程：字幕
 input: 视频文件
 output: 带字幕视频
-pos: 后置 skill，剪辑完成后调用
+由根目录 SKILL.md 路由到此文件
 -->
 
 # 字幕
@@ -47,10 +43,9 @@ curl -s -F "files[]=@audio.mp3" https://uguu.se/upload
 转录脚本会**自动读取词典**作为热词，提高识别准确率：
 
 ```bash
-# 词典位置: /Users/chengfeng/Desktop/AIos/剪辑Agent/.claude/skills/字幕/词典.txt
-# 脚本会自动加载
+# 词典位置: {baseDir}/字幕/词典.txt（脚本自动加载）
 
-bash ../剪口播/scripts/volcengine_transcribe.sh "https://o.uguu.se/xxxxx.mp3"
+bash "{baseDir}/剪口播/scripts/volcengine_transcribe.sh" "https://o.uguu.se/xxxxx.mp3"
 ```
 
 **词典格式**（每行一个词）：
@@ -132,7 +127,7 @@ Agent 应：
 
 ```bash
 cd 字幕目录/
-node /path/to/skills/字幕/scripts/subtitle_server.js 8898 "video.mp4"
+node "{baseDir}/字幕/scripts/subtitle_server.js" 8898 "video.mp4"
 ```
 
 访问 http://localhost:8898
