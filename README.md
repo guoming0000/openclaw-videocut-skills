@@ -1,6 +1,6 @@
 # Videocut Skills
 
-> 用 AI Agent 剪辑口播视频 — 支持 OpenClaw / Claude Code / Cursor
+> 用 Claude Code Skills 构建的视频剪辑 Agent，专为口播视频设计
 
 ## 为什么做这个？
 
@@ -8,7 +8,7 @@
 1. **无法理解语义**：重复说的句子、说错后纠正的内容，它识别不出来
 2. **字幕质量差**：专业术语（Claude Code、MCP、API）经常识别错误
 
-这个 Agent 用 AI 的语义理解能力解决第一个问题，用自定义词典解决第二个问题。
+这个 Agent 用 Claude 的语义理解能力解决第一个问题，用自定义词典解决第二个问题。
 
 ## 效果演示
 
@@ -32,80 +32,43 @@
 
 ## 快速开始
 
-### 安装 Skill
-
-**OpenClaw（推荐）**：
+### 1. 安装 Skills
 
 ```bash
-# 通过 ClawHub 安装（发布后可用）
-clawhub install videocut
-
-# 或手动安装到 OpenClaw skills 目录
-git clone https://github.com/Ceeon/videocut-skills.git ~/.openclaw/skills/videocut
-```
-
-**Claude Code**：
-
-```bash
+# 克隆到 Claude Code skills 目录
 git clone https://github.com/Ceeon/videocut-skills.git ~/.claude/skills/videocut
 ```
 
-**Cursor**：
+### 2. 配置 API Key
 
 ```bash
-git clone https://github.com/Ceeon/videocut-skills.git .cursor/skills/videocut
+cd ~/.claude/skills/videocut
+cp .env.example .env
+# 编辑 .env，填入火山引擎 API Key
 ```
 
-### 配置 API Key
+### 3. 安装环境
 
-**方式一：环境变量（通用）**
-
-```bash
-export VOLCENGINE_API_KEY=your_key
-```
-
-**方式二：OpenClaw 配置**
-
-编辑 `~/.openclaw/openclaw.json`：
-
-```json
-{
-  "skills": {
-    "entries": {
-      "videocut": {
-        "env": { "VOLCENGINE_API_KEY": "your_key" }
-      }
-    }
-  }
-}
-```
-
-**方式三：.env 文件（兼容旧方式）**
-
-```bash
-cd ~/.openclaw/skills/videocut  # 或对应安装路径
-echo "VOLCENGINE_API_KEY=your_key" > .env
-```
-
-### 安装依赖
-
-告诉 Agent：
+打开 Claude Code，输入：
 
 ```
-安装环境
+/videocut:安装
 ```
 
-AI 会自动检查并安装 Node.js、FFmpeg。
+AI 会自动：
+- 检查 Python、FFmpeg、Node.js
+- 安装 FunASR（口误识别模型，约 2GB）
+- 安装 Whisper large-v3（字幕模型，约 3GB）
 
 ## 使用流程
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│  "安装环境"  →  首次使用，安装依赖                       │
+│  /videocut:安装  →  首次使用，安装环境和模型            │
 └─────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────┐
-│  "帮我剪这个口播视频 视频.mp4"                          │
+│  /videocut:剪口播 视频.mp4                              │
 │                                                         │
 │  1. 提取音频 → 上传云端                                 │
 │  2. 火山引擎转录 → 字级别时间戳                         │
@@ -123,15 +86,15 @@ AI 会自动检查并安装 Node.js、FFmpeg。
 └─────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────┐
-│  "给视频加字幕"                                         │
+│  /videocut:字幕                                         │
 │                                                         │
-│  - 火山引擎转录（带热词）                               │
-│  - AI 校对 + 词典纠错                                   │
+│  - Whisper 转录                                         │
+│  - 词典纠错（Claude Code → claude code）                │
 │  - 人工确认 → 烧录字幕                                  │
 └─────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────┐
-│  "记录一下刚才的问题"  （可选）                         │
+│  /videocut:自更新  （可选）                             │
 │                                                         │
 │  告诉 AI 你的偏好，它会记住：                           │
 │  - "静音阈值改成 1 秒"                                  │
@@ -139,39 +102,65 @@ AI 会自动检查并安装 Node.js、FFmpeg。
 └─────────────────────────────────────────────────────────┘
 ```
 
+## Skill 清单
+
+| Skill | 功能 | 输入 | 输出 |
+|-------|------|------|------|
+| `安装` | 环境准备 | 无 | 安装日志 |
+| `剪口播` | 转录 + AI 审核 + 剪辑 | 视频文件 | 剪辑后视频 |
+| `字幕` | 生成字幕 | 视频文件 | 带字幕视频 |
+| `自更新` | 记录偏好 | 用户反馈 | 更新规则文件 |
+
 ## 目录结构
 
 ```
-videocut-skills/
-├── SKILL.md            # OpenClaw 入口（功能路由）
+videocut/
 ├── README.md           # 本文件
-├── 安装/
-│   └── guide.md        # 环境安装流程
-├── 剪口播/
-│   ├── guide.md        # 转录 + AI 审核 + 剪辑流程
-│   ├── scripts/        # 脚本
-│   │   ├── volcengine_transcribe.sh
-│   │   ├── generate_subtitles.js
-│   │   ├── generate_review.js
-│   │   ├── review_server.js
-│   │   └── cut_video.sh
+├── .env.example        # API Key 模板
+├── 安装/               # 环境安装 skill
+├── 剪口播/             # 核心：转录 + AI 审核 + 剪辑
+│   ├── SKILL.md        # 流程说明
+│   ├── *.js            # 脚本（生成字幕、审核页面、服务器）
+│   ├── *.sh            # 脚本（转录、剪辑）
 │   └── 用户习惯/       # 审核规则（可自定义）
-│       ├── 1-核心原则.md
-│       ├── 2-语气词检测.md
-│       ├── 3-静音段处理.md
-│       ├── 4-重复句检测.md
-│       ├── 5-卡顿词.md
-│       ├── 6-句内重复检测.md
-│       ├── 7-连续语气词.md
-│       ├── 8-重说纠正.md
-│       └── 9-残句检测.md
-├── 字幕/
-│   ├── guide.md        # 字幕生成与烧录流程
-│   ├── scripts/
-│   │   └── subtitle_server.js
-│   └── 词典.txt        # 自定义热词词典
-└── 自进化/
-    └── guide.md        # 自我学习机制
+│       ├── 1-核心原则.md       # 删前保后
+│       ├── 2-语气词检测.md     # 嗯啊呃
+│       ├── 3-静音段处理.md     # >0.3s 删除
+│       ├── 4-重复句检测.md     # 相邻句开头相同
+│       ├── 5-卡顿词.md         # 那个那个、就是就是
+│       ├── 6-句内重复检测.md   # A+中间+A 模式
+│       ├── 7-连续语气词.md     # 嗯啊、啊呃
+│       └── 8-重说纠正.md       # 部分重复、否定纠正
+├── 字幕/               # 字幕生成与烧录
+│   └── 词典.txt        # 自定义词典
+└── 自更新/             # 自我进化机制
+```
+
+## 技术架构
+
+```
+┌──────────────────┐     ┌──────────────────┐
+│   火山引擎 ASR   │────▶│  字级别时间戳    │
+│  （云端转录）    │     │  subtitles.json  │
+└──────────────────┘     └────────┬─────────┘
+                                  │
+                                  ▼
+┌──────────────────┐     ┌──────────────────┐
+│   Claude Code    │────▶│   AI 审核结果    │
+│  （语义分析）    │     │  auto_selected   │
+└──────────────────┘     └────────┬─────────┘
+                                  │
+                                  ▼
+┌──────────────────┐     ┌──────────────────┐
+│   审核网页       │────▶│   最终删除列表   │
+│  （人工确认）    │     │  delete_segments │
+└──────────────────┘     └────────┬─────────┘
+                                  │
+                                  ▼
+┌──────────────────┐     ┌──────────────────┐
+│     FFmpeg       │────▶│   剪辑后视频     │
+│  filter_complex  │     │   xxx_cut.mp4    │
+└──────────────────┘     └──────────────────┘
 ```
 
 ## 依赖
@@ -180,6 +169,7 @@ videocut-skills/
 |------|------|----------|
 | Node.js 18+ | 运行脚本 | `brew install node` |
 | FFmpeg | 音视频处理 | `brew install ffmpeg` |
+| Python 3.8+ | 模型运行 | 系统自带 |
 | 火山引擎 API | 语音转录 | [申请 Key](https://console.volcengine.com/) |
 
 ## 常见问题

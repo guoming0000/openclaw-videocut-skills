@@ -1,8 +1,16 @@
+---
+name: videocut:安装
+description: 环境准备。安装依赖、配置 API Key、验证环境。触发词：安装、环境准备、初始化
+---
+
 <!--
-子流程：安装
 input: 无
 output: 环境就绪
-由根目录 SKILL.md 路由到此文件
+pos: 前置 skill，首次使用前运行
+
+架构守护者：一旦我被修改，请同步更新：
+1. ../README.md 的 Skill 清单
+2. /CLAUDE.md 路由表
 -->
 
 # 安装
@@ -33,7 +41,13 @@ output: 环境就绪
 1. 注册火山引擎账号
 2. 开通语音识别服务
 3. 获取 API Key
-4. 设置环境变量 `VOLCENGINE_API_KEY`
+
+配置到项目目录 `.claude/skills/.env`：
+
+```bash
+# 文件路径：剪辑Agent/.claude/skills/.env
+VOLCENGINE_API_KEY=your_api_key_here
+```
 
 ## 安装流程
 
@@ -60,32 +74,22 @@ ffmpeg -version
 
 ### 2. 配置 API Key
 
-通过 OpenClaw 配置注入环境变量，或直接设置：
-
 ```bash
-export VOLCENGINE_API_KEY=your_key
-```
-
-OpenClaw 用户可在 `~/.openclaw/openclaw.json` 中配置：
-
-```json
-{
-  "skills": {
-    "entries": {
-      "videocut": {
-        "env": { "VOLCENGINE_API_KEY": "your_key" }
-      }
-    }
-  }
-}
+# 在项目 .claude/skills/ 目录下创建 .env 文件
+echo "VOLCENGINE_API_KEY=your_key" >> .claude/skills/.env
 ```
 
 ### 3. 验证环境
 
 ```bash
+# 检查 Node.js
 node -v
+
+# 检查 FFmpeg
 ffmpeg -version
-echo $VOLCENGINE_API_KEY
+
+# 检查 API Key（在项目目录下执行）
+cat .claude/skills/.env | grep VOLCENGINE
 ```
 
 ## 常见问题
@@ -93,10 +97,6 @@ echo $VOLCENGINE_API_KEY
 ### Q1: API Key 在哪获取？
 
 火山引擎控制台 → 语音技术 → 语音识别 → API Key
-
-### Q4: OpenClaw 里怎么配置 API Key？
-
-在 `~/.openclaw/openclaw.json` 的 `skills.entries.videocut.env` 中设置 `VOLCENGINE_API_KEY`。
 
 ### Q2: ffmpeg 命令找不到
 
